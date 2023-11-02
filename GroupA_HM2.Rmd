@@ -1,6 +1,6 @@
 ---
 title: "GroupA_HM2"
-author: "I.El gataa, M.Munini, E.Ruoppolo, M.Tallone"
+author: "I.El Gataa, M.Munini, E.Ruoppolo, M.Tallone"
 output: 
   pdf_document:
     toc: true
@@ -47,7 +47,17 @@ Add comments to the solution.
 
 **Solution**
 
-Add comments to the solution.
+The standard error for an estimate of a proportion $\pi$ can be obtained with the following formula:
+$$
+SE(\hat{\pi})=\sqrt{\frac{\pi(1-\pi)}{n}}
+$$
+Since we are asking that $SE(\hat{\pi})=0.04$ and we are interested in the number of voters $n$, we can simply invert to find that:
+$$
+n = \frac{\pi(1-\pi)}{(SE(\hat{\pi}))^2} = \frac{0.5 \cdot (1-0.5)}{(0.04)^2} = 156.25
+$$
+Being the number of voters an integer number, it is possible to approximate the previous result to $n\approx157$ in order to guarantee the desired standard error.
+
+
 
 ## FSDS - Chapter 4
 
@@ -99,7 +109,258 @@ Thus we find the ML estimator for $\pi$: $$ \hat\pi=\frac{n}{\sum_i^ny_i}$$
 
 **Solution**
 
-Add comments to the solution.
+(a) Assuming that the selling prices ($x_i$) found in the ``Houses`` dataset follow a normal distribution with mean $\mu$ and standard deviation $\sigma$, their log likelihood function is given by:
+$$
+\begin{aligned}
+\ell(\mu,\sigma^2) &= \sum^n_{i=1}log\left(\frac{1}{\sqrt{2\pi\sigma^2}}exp\left[-\frac{(x_i-\mu)^2}{2\sigma^2}\right]\right)\\
+&=-\frac{n}{2}log(2\pi\sigma^2)-\frac{1}{2\sigma^2}\sum^n_{i=1}(x_i-\mu)^2
+\end{aligned}
+$$
+Using this function and solving the system of equations 
+$$
+\begin{cases}
+\frac{\partial\ell(\mu,\sigma^2)}{\partial\mu}=0\\
+\frac{\partial\ell(\mu,\sigma^2)}{\partial\sigma^2}=0\\
+\end{cases}
+$$
+we find that the best estimators for the parameters $\mu$ and $\sigma^2$ are:
+$$
+\begin{cases}
+\hat\mu = \bar{x} = \frac{1}{n}\sum_i x_i\\
+\hat\sigma^2=\frac{1}{n}\sum_i (x_i-\bar{x})^2\\
+\end{cases}
+$$
+```{r, include=FALSE}
+# Import and read the dataset
+houses <- read.csv("~/units/Statistical Methods/StatHw2/houses.dat", sep="",stringsAsFactors=TRUE)
+library(fields)
+```
+
+
+After importing the necessary dataset and libraries to conduct the fit in R studio, it's possible to define the Gaussian log likelihood function alongside the total number of observed prices in order to compute the point estimates directly.
+```{r}
+# Total number of observed prices
+n <- length(houses$price)
+
+# Gaussian log likelihood function
+llike_gauss <- function(data, params){ sum(dnorm(x=data, mean=params[1], sd=params[2], log = TRUE)) }
+
+# Estimates
+mu_MLE <- mean(houses$price)
+sigma2_MLE <- ((n-1)/n)*var(houses$price)
+
+# Results
+cat(" Estimated mean:", mu_MLE,"\n","Estimated standard deviation:", 
+    sqrt(sigma2_MLE),"\n","Value of Gaussian Log-Likelihood function: ", 
+    llike_gauss(houses$price, c(mu_MLE, sqrt(sigma2_MLE))))
+
+```
+
+In addition, being the previously defined log likelihood a function of two parameters, it's possible to visualize the 3D plot of the function for values of the parameters in a neighborhood of the estimated ones, in order to visually verify that they actually maximize the function.  
+```{r, echo=TRUE}
+# Define a parameter grid to plot the log-likelihood
+mu_grid <- seq(150, 300, length=100)
+sigma_grid <- seq(100, 210, length=100)
+parvalues <- expand.grid(mu_grid, sigma_grid)
+
+# Obtain the log-likelihood values for each point of the grid
+n_llikvalues <- apply(parvalues, 1, llike_gauss, data = houses$price)
+llikvalues <- matrix(n_llikvalues, nrow = length(mu_grid), 
+                     ncol = length(sigma_grid),byrow = FALSE)
+
+# 3D plot with colormap
+{
+z<-llikvalues
+nrz <- nrow(z)
+ncz <- ncol(z)
+# Create a function interpolating colors in the range of specified colors
+jet.colors <- colorRampPalette( c("lightblue1","lightblue","orange", "red") )
+# Generate the desired number of colors from this palette
+nbcol <- 100
+color <- jet.colors(nbcol)
+# Compute the z-value at the facet centres
+zfacet <- (z[-1, -1] + z[-1, -ncz] + z[-nrz, -1] + z[-nrz, -ncz])/4
+# Recode facet z-values into color indices
+facetcol <- cut(zfacet, nbcol)
+
+persp(mu_grid,sigma_grid,llikvalues,
+      main="Gaussian fit: log likelihood plot",
+      zlab = "",
+      xlab = expression(mu),
+      ylab = expression(sigma),
+      theta = 30, phi = 15,
+      col = color[facetcol],
+      expand=0.8,
+      ticktype="detailed",
+      border = NA)
+
+image.plot(legend.only=T, zlim=range(zfacet), col=color)
+}
+```
+
+The same graph can also be plotted as follows with contour lines for different confidence levels, where the vertical and horizontal lines are traced in correspondence of the estimated parameters.
+```{r}
+# Define the confidence levels
+{
+conf_levels <- c(0, 0.5, 0.75, 0.9, 0.95, 0.99)
+par(mfrow = c(1, 2))
+
+# contour plot
+contour(mu_grid, sigma_grid, llikvalues - max(llikvalues),
+levels = -qchisq(conf_levels, 2)/2,
+xlab = expression(mu), ylab = expression(sigma),
+labels = as.character(conf_levels))
+segments(0, sqrt(sigma2_MLE), mu_MLE, sqrt(sigma2_MLE), col=2, lwd = 1)
+segments(mu_MLE, 0, mu_MLE, sqrt(sigma2_MLE), col=2, lwd = 1)
+title("Gaussian log likelihood:\n contour plot")
+
+# image plot
+image(mu_grid, sigma_grid, llikvalues - max(llikvalues),
+zlim = c(-6, 0), col = color,
+xlab = expression(mu), ylab = expression(sigma))
+segments(0, sqrt(sigma2_MLE), mu_MLE, sqrt(sigma2_MLE), col=1, lwd = 1)
+segments(mu_MLE, 0, mu_MLE, sqrt(sigma2_MLE), col=1, lwd = 1)
+title("Gaussian log likelihood:\n image plot")
+}
+```
+
+(b) In this case, assuming the the house prices ($x_i$) are distributed following a Log-Normal distribution, we can find new estimates for the parameters using the relative log likelihood function that can be written as:
+$$
+\begin{aligned}
+\ell(\mu,\sigma^2) &= \sum^n_{i=1}log\left(\frac{1}{x_i\cdot\sqrt{2\pi\sigma^2}}exp\left[-\frac{(log(x_i-\mu)^2}{2\sigma^2}\right]\right)\\
+&=-\frac{n}{2}log(2\pi x_i^2\;\sigma^2)-\frac{1}{2\sigma^2}\sum^n_{i=1}(log(x_i)-\mu)^2
+\end{aligned}
+$$
+Solving the same system of equations of the previous point with this function we obtain that the best estimators for the parameters are:
+$$
+\begin{cases}
+\hat\mu = \frac{1}{n}\sum_i log(x_i)\\
+\hat\sigma^2=\frac{1}{n}\sum_i [log(x_i)-\hat\mu]^2\\
+\end{cases}
+$$
+
+Following the same procedure in R Studio, we obtain as estimates:
+```{r}
+# Log-Likelihood of the Log-Normal distribution
+llike_lnorm <- function(data, params){ sum(dlnorm(x=data, meanlog=params[1], 
+                                                  sdlog=params[2], log = TRUE)) }
+
+#Estimates
+lmu_MLE <- mean(log(houses$price))
+lsigma2_MLE <- ((n-1)/n)*var(log(houses$price))
+
+cat(" Estimated mean:", lmu_MLE,"\n","Estimated standard deviation:", 
+    sqrt(lsigma2_MLE),"\n","Value of Log-Likelihood function: ", 
+    llike_lnorm(houses$price, c(lmu_MLE, sqrt(lsigma2_MLE))))
+
+```
+
+And plotting as before the log likelihood graphs we get the following:
+```{r, echo=TRUE}
+# Define a parameter grid to plot the log-likelihood
+mu_grid <- seq(5, 5.6, length=100)
+sigma_grid <- seq(0.4, 0.8, length=100)
+parvalues <- expand.grid(mu_grid, sigma_grid)
+
+# Obtain the log-likelihood values for each point of the grid
+n_llikvalues <- apply(parvalues, 1, llike_lnorm, data = houses$price)
+llikvalues <- matrix(n_llikvalues, nrow = length(mu_grid), 
+                     ncol = length(sigma_grid),byrow = FALSE)
+
+# 3D plot
+{
+z<-llikvalues
+nrz <- nrow(z)
+ncz <- ncol(z)
+# Create a function interpolating colors in the range of specified colors
+jet.colors <- colorRampPalette( c("lightblue1","lightblue","orange", "red") )
+# Generate the desired number of colors from this palette
+nbcol <- 100
+color <- jet.colors(nbcol)
+# Compute the z-value at the facet centres
+zfacet <- (z[-1, -1] + z[-1, -ncz] + z[-nrz, -1] + z[-nrz, -ncz])/4
+# Recode facet z-values into color indices
+facetcol <- cut(zfacet, nbcol)
+
+persp(mu_grid,sigma_grid,llikvalues,
+      main="Log-Normal fit: log likelihood plot",
+      zlab = "",
+      xlab = expression(mu),
+      ylab = expression(sigma),
+      theta = 30, phi = 15,
+      col = color[facetcol],
+      expand=0.8,
+      ticktype="detailed",
+      border = NA)
+
+image.plot(legend.only=T, zlim=range(zfacet), col=color)
+}
+```
+```{r}
+# Define the confidence levels
+{
+conf_levels <- c(0, 0.5, 0.75, 0.9, 0.95, 0.99)
+par(mfrow = c(1, 2))
+
+# contour plot
+contour(mu_grid, sigma_grid, llikvalues - max(llikvalues),
+levels = -qchisq(conf_levels, 2)/2,
+xlab = expression(mu), ylab = expression(sigma),
+labels = as.character(conf_levels))
+segments(0, sqrt(lsigma2_MLE), lmu_MLE, sqrt(lsigma2_MLE), col=2, lwd = 1)
+segments(lmu_MLE, 0, lmu_MLE, sqrt(lsigma2_MLE), col=2, lwd = 1)
+title("Log-Normal log likelihood:\n contour plot")
+
+# image plot
+image(mu_grid, sigma_grid, llikvalues - max(llikvalues),
+zlim = c(-6, 0), col = color,
+xlab = expression(mu), ylab = expression(sigma))
+segments(0, sqrt(lsigma2_MLE), lmu_MLE, sqrt(lsigma2_MLE), col=1, lwd = 1)
+segments(lmu_MLE, 0, lmu_MLE, sqrt(lsigma2_MLE), col=1, lwd = 1)
+title("Log-Normal log likelihood:\n image plot")
+}
+```
+
+(c) In the first case, since the data were fitted using a Gaussian distribution, the mean of the the selling prices and the standard deviation are the ones estimated for the Gaussian distribution itself:
+$$
+\begin{cases}
+\hat\mu_{gauss} \approx 233\\
+\hat\sigma_{gauss} \approx 151\\
+\end{cases}
+$$
+In the second scenario, since the distribution used to fit the data is the Log-Normal distribution, the estimated parameters give a mean and a standard deviation for the data in a logarithmic scale. Therefore, in order to compare the results with the ones from the first fit we should apply the exponential function as follows:
+```{r}
+lmean <- exp(lmu_MLE)
+lsigma <- exp(sqrt(lsigma2_MLE))
+cat(" Mean exponential:", lmean,"\n","Standard deviation exponential:", lsigma,"\n")
+```
+Which means that, approximately:
+$$
+\begin{cases}
+exp(\hat\mu_{log}) \approx 198.6\\
+exp(\hat\sigma_{log}) \approx 1.7\\
+\end{cases}
+$$
+Having obtained comparable values, it's now possible to see that the mean for the selling price does not seems to change significantly from one fit to the other but there is a notable difference for what regards the standard deviation. The high value obtained with the Gaussian fit suggests that the selling price is subject to high variability while the opposite can be said for the Log-Normal fit due to the relatively small value estimated for the standard deviation.
+
+(d) By superimposing the two distribution to the histogram of the prices it is possible to better visualize what was said for the previous point.
+```{r}
+# Superimpose Gaussian plot
+{hist(houses$price, prob=TRUE, nclass = 15, main = "Histogram of houses prices", 
+      xlab="Price (k$)", ylab="Density")
+  
+curve(dnorm(x, mean = mu_MLE, sd = sqrt(sigma2_MLE)), lwd = 2, col="red", add = TRUE)
+segments(mu_MLE, 0, mu_MLE, dnorm(mu_MLE, mu_MLE, sqrt(sigma2_MLE)), col="red", lwd = 2)
+
+curve(dlnorm(x, mean = lmu_MLE, sd = sqrt(lsigma2_MLE)), lwd = 2, col="blue", add = TRUE)
+dlmean <- dlnorm(lmean, lmu_MLE, sqrt(lsigma2_MLE))
+segments(lmean, 0, lmean, dlmean, col="blue", lwd = 2)
+
+legend(x = "topright", legend=c( "Gaussian Fit", "Log-Normal Fit" ),  
+       fill = c(col ="red",col ="blue"))
+}
+```
+Among the two distribution, the Log-Normal one seems to be the better choice for fitting the data both due to their high skewness and also because the histogram shows them to be more concentrated around the mean value estimated with the second fit, contradicting this way the high variability suggested by the Gaussian fit. 
 
 ### Ex 4.48
 
@@ -187,4 +448,59 @@ So, by these two different analysis we can state that the hypothesis test only s
 
 **Solution**
 
-Add comments to the solution.
+The Wald test statistic is defined as 
+$$
+W_e(\theta) = (\hat{\theta}-\theta)^2 \cdot J(\hat{\theta}) = 
+\frac{(\hat{\theta}-\theta)^2}{(SE(\hat{\theta}))^2}
+$$
+which, in the null hypothesis $H_0\,:\,\theta=\theta_0$, approximately follows a chi-squared distribution with 1 degree of freedom($W_e(\theta) \overset{.}{\sim} \chi_1^2$).
+
+With this definition it's possible to build the $(1-\alpha)\times 100\%$ confidence interval, that is formally defined as:
+$$
+\{\; \theta \; : \; W_e(\theta) \leq \chi^2_{1;1-\alpha} \;\}
+$$
+where $\chi^2_{1;1-\alpha}$ is the $\alpha$ quantile of a chi-squared distribution with 1 degree of freedom.
+Using the definition of the test statistic, this interval can be rewritten as:
+$$
+\begin{aligned}
+\{\; \theta \; : \; W_e(\theta) \leq \chi^2_{1;1-\alpha} \;\} &= \left\{\; \theta \; : \; \frac{(\hat{\theta}-\theta)^2}{(SE(\hat{\theta}))^2} \leq \chi^2_{1;1-\alpha} \;\right\}\\
+&=\left\{\; \theta \; : \; (\hat{\theta}-\theta)^2 \leq (SE(\hat{\theta}))^2 \cdot \chi^2_{1;1-\alpha} \;\right\}\\
+&=\left\{\; \theta \; : \; -SE(\hat{\theta}) \cdot \sqrt{\chi^2_{1;1-\alpha}} \leq \hat{\theta}-\theta \leq +SE(\hat{\theta}) \cdot \sqrt{\chi^2_{1;1-\alpha}} \;\right\}\\
+&=\left\{\; \theta \; : \; \hat{\theta}-SE(\hat{\theta}) \cdot \sqrt{\chi^2_{1;1-\alpha}} \leq \;\; \theta \;\; \leq \hat{\theta}+SE(\hat{\theta}) \cdot \sqrt{\chi^2_{1;1-\alpha}} \;\right\}\\
+\end{aligned}
+$$
+This demonstrated that the interval is indeed symmetric around $\hat\theta$, with width equal to $2 \cdot SE(\hat{\theta}) \cdot \sqrt{\chi^2_{1;1-\alpha}}$.
+
+To explain why this symmetry can be problematic when $\theta$ and $\hat\theta$ assume values close to the boundary we can consider the example of a population proportion $\pi \in [0,1]$.
+Since the standard error for a  proportion $\pi$ can be obtained with
+$$
+SE(\hat{\pi})=\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}}
+$$
+then, the Wald test statistic in this case becomes:
+$$
+W_e(\theta) = \frac{n(\hat{\pi}-\pi)^2}{\hat\pi(1-\hat\pi)}
+$$
+This implies that the previously introduced confidence interval can be expressed as
+$$
+\left\{\; \pi \in [0,1] \; : \; \hat{\pi} - \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \leq \;\; \pi \;\; \leq \hat{\pi} + \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \;\right\}
+$$
+and it's immediately possible to notice that the width of the interval, given by $2 \cdot \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}}$, goes to zero for any given confidence level as the sample proportion $\hat\pi$ approaches either $0$ or $1$ (boundary values).
+This behavior results problematic when conducting a hypothesis test since it most likely leads to the rejection of the null hypothesis in favor of the alternative one independently of the value assumed by the test statistic $W_e(\theta)$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
