@@ -63,7 +63,7 @@ Being the number of voters an integer number, it is possible to approximate the 
 
 ### Ex 4.2
 
-*For a sequence of observations of a binary random variable, you observe the geometric random variable (Section 2.2.2) outcome of the first success on observation number* $y = 3$*. Find and plot the likelihood function.*
+*Here the text of the first exercise.*
 
 **Solution**
 
@@ -89,11 +89,11 @@ Let's first remind the geometric distribution: $$ f(y;\pi)=(1-\pi)^{y-1}\pi$$
 
 -   To find a sufficient statistic for the independent set $y_1,\dots,y_n$ from a geometric distribution we first need to write the likelihood function $L(\pi)$ that is:
 $$ L(\pi) = \prod_{i=1}^n (1-\pi)^{y_i-1}\pi =\pi^n\prod_{i=1}^n(1-\pi)^{y_i-1}=\left(\frac{\pi}{1-\pi}\right)^n\prod_{i=1}^n(1-\pi)^{y_i}=\left(\frac{\pi}{1-\pi}\right)^n(1-\pi)^{\sum_i^ny_i}$$
-Since we can write it as a factorized function of type $g[T(\mathbf{y});\pi]$ where $T(\mathbf{y})=\sum_i^ny_i$ and $L(\pi)$ depends on the data $\mathbf{y}$ only through this function that comprehends the entire data, and not single observations, we can say that $T(\mathbf{y})=\sum_i^ny_i$ is a sufficient statistic.
-
--   To find an ML estimator for $\pi$ we have to find a value of $\pi$ that maximize $\ell(\pi)$. First of all the log likelihood $\ell(\pi)$ is:
+Hence the log likelihood $\ell(\pi)$ is:
 $$ \ell(\pi)=\log L(\pi)=n[\log\pi-\log(1-\pi)]+\log(1-\pi)\sum_i^ny_i$$
-So to find the ML estimator we shall find the value of $\pi$ for which the derivative of $\ell$ is null:
+Since we can write it as a factorized function of type $g[T(\mathbf{y});\pi]$ where $T(\mathbf{y})=\sum_i^ny_i$ and $\ell(\pi)$ depends on the data $\mathbf{y}$ only through this function that comprehends the entire data, and not single observations, we can say that $T(\mathbf{y})=\sum_i^ny_i$ is a sufficient statistic.
+
+-   To find an ML estimator for $\pi$ we have to find a value of $\pi$ that maximize $\ell(\pi)$. So we can find the value of $\pi$ for which the derivative of $\ell$ is null:
 $$ \frac{\text{d}}{\text{d}\pi}\ell(\pi)=n\left(\frac{1}{\pi}+\frac{1}{1-\pi}\right) -\frac{1}{1-\pi}\sum_i^ny_i=0 $$
 Hence: $$ \frac1n\sum_i^ny_i=\frac{1-\pi+\pi}{\pi}\implies\frac1\pi=\frac1n\sum_i^ny_i$$
 Thus we find the ML estimator for $\pi$: $$ \hat\pi=\frac{n}{\sum_i^ny_i}$$
@@ -360,7 +360,26 @@ legend(x = "topright", legend=c( "Gaussian Fit", "Log-Normal Fit" ),
        fill = c(col ="red",col ="blue"))
 }
 ```
-Among the two distribution, the Log-Normal one seems to be the better choice for fitting the data both due to their high skewness and also because the histogram shows them to be more concentrated around the mean value estimated with the second fit, contradicting this way the high variability suggested by the Gaussian fit. 
+
+Among the two distribution, the Log-Normal one seems to be the better choice for fitting the data both due to their high skewness and also because the histogram shows them to be more concentrated around the mean value estimated with the second fit, contradicting this way the high variability suggested by the Gaussian fit.
+This is also supported by the qq-plots obtainable for the two fits.
+```{r}
+library(car)
+
+{par(mfrow = c(1, 2))
+qqPlot(houses$price, dist="norm", pch=20, main="QQ-Plot Gaussian Fit", 
+       xlab="Gaussian quantiles", ylab="Sample prices quantiles", 
+       envelope=FALSE, grid=FALSE, id=FALSE)
+
+qqPlot(houses$price, dist="lnorm", pch=20, main="QQ-Plot Log-Normal Fit", 
+       xlab="Log-Normal quantiles", ylab="Sample prices quantiles", 
+       envelope=FALSE, grid=FALSE, id=FALSE)
+}
+
+```
+
+As it's possible to see on the qq-plot for the Gaussian model on the left, the fact that the last points detach form the line suggests that there is not great agreement between the measured data and the theoretical Gaussian distribution and also indicates that the distribution of the data is skewed to the right as we've already deduced from the previous histogram.
+
 
 ### Ex 4.48
 
