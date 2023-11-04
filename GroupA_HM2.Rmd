@@ -74,6 +74,7 @@ ggplot()+
 ```
 
 From the three density plots above it is possible to notice the effect of sample size. In particular, comparing the "Small sample size, n = 20 & n = 30" with "Medium sample size, n = 100 & n = 500" plot it is possible to notice that increasing $n$, the probability distributions' plots of normal random samples takes on the characteristics of a Gaussian distribution. When $n$ is set to be equal or greater than $1000$, then the probability distributions' plots of normal random samples are perfectly normal.
+
 ### Ex 3.18
 
 *Sunshine City, which attracts primarily retired people, has 90,000 residents with a mean age of 72 years and a standard deviation of 12 years. The age distribution is skewed to the left. A random sample of 100 residents of Sunshine City has* $\bar{y}=70$ *and* $s=11$.
@@ -607,7 +608,7 @@ dif
 The result is: $$ (\bar{y}_1-\bar{y}_2)\pm t_{0.025,91}(se) = -3.61\pm3.1\text{  or }(-6.71,-0.51)$$
 The interval not including 0 can be interpreted as sign that the two means are not equal. Also the interval covering only negative values may mean that $\mu_2>\mu_1$.
 
-So, by these two different analysis we can state that the hypothesis test only states that the hypothesis of having $\mu_1=\mu_2$ should be rejected because of the low $p-$value while the confidence interval analysis adds to the statement of incompatibility that the mean sale of menu b is higher than the one of menu a.
+So, by these two different analysis we can find that the hypothesis test only suggests that the hypothesis of having $\mu_1=\mu_2$ should be rejected because of the low $p-$value, while the confidence interval analysis adds to the statement of incompatibility that the mean sale of menu b is higher than the one of menu a.
 
 ### Ex 5.68
 
