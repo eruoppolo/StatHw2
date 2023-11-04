@@ -515,17 +515,20 @@ This behavior results problematic when conducting a hypothesis test since it mos
 
 
 
+This demonstrated that the interval is indeed symmetric around $\hat\theta$, with width equal to $2 \cdot SE(\hat{\theta}) \cdot \sqrt{\chi^2_{1;1-\alpha}}$.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+To explain why this symmetry can be problematic when $\theta$ and $\hat\theta$ assume values close to the boundary we can consider the example of a population proportion $\pi \in [0,1]$.
+Since the standard error for a  proportion $\pi$ can be obtained with
+$$
+SE(\hat{\pi})=\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}}
+$$
+then, the Wald test statistic in this case becomes:
+$$
+W_e(\theta) = \frac{n(\hat{\pi}-\pi)^2}{\hat\pi(1-\hat\pi)}
+$$
+This implies that the previously introduced confidence interval can be expressed as
+$$
+\left\{\; \pi \in [0,1] \; : \; \hat{\pi} - \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \leq \;\; \pi \;\; \leq \hat{\pi} + \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \;\right\}
+$$
+and it's immediately possible to notice that the width of the interval, given by $2 \cdot \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}}$, goes to zero for any given confidence level as the sample proportion $\hat\pi$ approaches either $0$ or $1$ (boundary values).
+This behavior results problematic when conducting a hypothesis test since it most likely leads to the rejection of the null hypothesis in favor of the alternative one independently of the value assumed by the test statistic $W_e(\theta)$.
