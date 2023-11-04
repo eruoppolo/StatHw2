@@ -205,10 +205,10 @@ Thus we find the ML estimator for $\pi$: $$ \hat\pi=\frac{n}{\sum_i^ny_i}$$
 
 *Refer to the previous two exercises. Consider the selling prices (in thousands of dollars) in the* ``Houses`` *data file mentioned in Exercise 4.31.*
 
--   *Fit the normal distribution to the data by finding the ML estimates of* $\mu$ *and* $\sigma$ *for that distribution.*
--   *Fit the log-normal distribution to the data by finding the ML estimates of its parameters.*
--   *Find and compare the ML estimates of the mean and standard deviation of selling price for the two distributions.*
--   *Superimpose the fitted normal and log-normal distributions on a histogram of the data. Which distribution seems to be more appropriate for summarizing the selling prices?*
+(a)   *Fit the normal distribution to the data by finding the ML estimates of* $\mu$ *and* $\sigma$ *for that distribution.*\
+(b)   *Fit the log-normal distribution to the data by finding the ML estimates of its parameters.*\
+(c)   *Find and compare the ML estimates of the mean and standard deviation of selling price for the two distributions.*\
+(d)   *Superimpose the fitted normal and log-normal distributions on a histogram of the data. Which distribution seems to be more appropriate for summarizing the selling prices?*\
 
 **Solution**
 
@@ -235,8 +235,9 @@ $$
 $$
 ```{r, include=FALSE}
 # Import and read the dataset
-houses <- read.csv("~/units/Statistical Methods/StatHw2/houses.dat", sep="",stringsAsFactors=TRUE)
+houses <- read.table("https://stat4ds.rwth-aachen.de/data/Houses.dat", header=TRUE)
 library(fields)
+library(car)
 ```
 
 
@@ -431,29 +432,35 @@ $$
 \hat\sigma_{gauss} \approx 151\\
 \end{cases}
 $$
-In the second scenario, since the distribution used to fit the data is the Log-Normal distribution, the estimated parameters give a mean and a standard deviation for the data in a logarithmic scale. Therefore, in order to compare the results with the ones from the first fit we should apply the exponential function as follows:
+In the second scenario, since the distribution used to fit the data is the Log-Normal distribution, the estimated parameters $\mu$ and $\sigma$ give a mean and a standard deviation for the data in a logarithmic scale. Therefore, in order to compare the results with the ones from the first fit we should apply the formulas for the expected value ($\mu_{log}$) and the standard deviation ($\sigma_{log}$) of the Log-Normal distribution:
+$$
+\mu_{log}=exp\left(\mu+\frac{\sigma^2}{2}\right)
+\quad{\; , \;}\quad
+\sigma_{log}=\sqrt{\left(e^{\sigma^2}-1\right)\cdot exp\left(2\mu+\sigma^2\right)}
+$$
+We can get these value in R with the following code.
 ```{r}
-lmean <- exp(lmu_MLE)
-lsigma <- exp(sqrt(lsigma2_MLE))
+lmean <- exp(lmu_MLE+0.5*lsigma2_MLE)
+lsigma <- sqrt((exp(lsigma2_MLE)-1)*exp(2*lmu_MLE+lsigma2_MLE))
 cat(" Mean exponential:", lmean,"\n","Standard deviation exponential:", lsigma,"\n")
 ```
 Which means that, approximately:
 $$
 \begin{cases}
-exp(\hat\mu_{log}) \approx 198.6\\
-exp(\hat\sigma_{log}) \approx 1.7\\
+\hat\mu_{log} \approx 232\\
+\hat\sigma_{log} \approx 140\\
 \end{cases}
 $$
-Having obtained comparable values, it's now possible to see that the mean for the selling price does not seems to change significantly from one fit to the other but there is a notable difference for what regards the standard deviation. The high value obtained with the Gaussian fit suggests that the selling price is subject to high variability while the opposite can be said for the Log-Normal fit due to the relatively small value estimated for the standard deviation.
+Having obtained comparable values, it's now possible to see that the mean and the standard deviation estimated for the selling prices do not seem to change significantly from one fit to the other. By only looking at the estimated mean and standard deviation the two models seem to describe the same phenomenon.
 
-(d) By superimposing the two distribution to the histogram of the prices it is possible to better visualize what was said for the previous point.
+(d) However, by superimposing the two distribution to the histogram of the prices it is possible to better visualize the difference between the two models.
 ```{r}
 # Superimpose Gaussian plot
 {hist(houses$price, prob=TRUE, nclass = 15, main = "Histogram of houses prices", 
       xlab="Price (k$)", ylab="Density")
   
 curve(dnorm(x, mean = mu_MLE, sd = sqrt(sigma2_MLE)), lwd = 2, col="red", add = TRUE)
-segments(mu_MLE, 0, mu_MLE, dnorm(mu_MLE, mu_MLE, sqrt(sigma2_MLE)), col="red", lwd = 2)
+segments(mu_MLE, 0, mu_MLE, dnorm(mu_MLE, mu_MLE, sqrt(sigma2_MLE)), col="red", lwd = 3)
 
 curve(dlnorm(x, mean = lmu_MLE, sd = sqrt(lsigma2_MLE)), lwd = 2, col="blue", add = TRUE)
 dlmean <- dlnorm(lmean, lmu_MLE, sqrt(lsigma2_MLE))
@@ -464,11 +471,9 @@ legend(x = "topright", legend=c( "Gaussian Fit", "Log-Normal Fit" ),
 }
 ```
 
-Among the two distribution, the Log-Normal one seems to be the better choice for fitting the data both due to their high skewness and also because the histogram shows them to be more concentrated around the mean value estimated with the second fit, contradicting this way the high variability suggested by the Gaussian fit.
+Even if the two distributions produced similar means and standard deviations, among them the Log-Normal one seems to be the better choice for fitting the data due to their high skewness.
 This is also supported by the qq-plots obtainable for the two fits.
 ```{r}
-library(car)
-
 {par(mfrow = c(1, 2))
 qqPlot(houses$price, dist="norm", pch=20, main="QQ-Plot Gaussian Fit", 
        xlab="Gaussian quantiles", ylab="Sample prices quantiles", 
@@ -674,4 +679,4 @@ $$
 \left\{\; \pi \in [0,1] \; : \; \hat{\pi} - \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \leq \;\; \pi \;\; \leq \hat{\pi} + \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \;\right\}
 $$
 and it's immediately possible to notice that the width of the interval, given by $2 \cdot \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}}$, goes to zero for any given confidence level as the sample proportion $\hat\pi$ approaches either $0$ or $1$ (boundary values).
-This behavior results problematic when conducting a hypothesis test since it most likely leads to the rejection of the null hypothesis in favor of the alternative one independently of the value assumed by the test statistic $W_e(\theta)$.
+This behavior results problematic when conducting a hypothesis test since it most likely leads to the rejection of the null hypothesis (in favor of the alternative one) independently of both the value assumed by the test statistic $W_e(\theta)$ and the chosen significance level to conduct the test.
