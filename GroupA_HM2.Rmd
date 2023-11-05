@@ -161,9 +161,9 @@ The MLE estimate is 0.516.
 The Wald confidence interval, at 95% of significance level is: $\hat\pi \pm z_{\frac{\alpha=0.05}{2}}\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}}$.
 
 ```{r}
-quant_z <- qnorm(0.025,mean=0,sd=1)
-lower_b <- mle_pi - ((mle_pi*(1-mle_pi))/length(Student$life))**0.5
-upper_b <- mle_pi + ((mle_pi*(1-mle_pi))/length(Student$life))**0.5
+quant_z <- qnorm(0.975,mean=0,sd=1)
+lower_b <- mle_pi - quant_z*sqrt((mle_pi*(1-mle_pi))/length(Student$life))
+upper_b <- mle_pi + quant_z*sqrt((mle_pi*(1-mle_pi))/length(Student$life))
 lower_b
 ```
 
@@ -172,7 +172,7 @@ lower_b
 upper_b
 ```
 
-The Wald confidence interval is $ \hat\pi \in [0.4521 ; 0.5811]$.
+The Wald confidence interval is $\hat\pi \in [0.3902 ; 0.6431]$.
 
 ### Ex 4.38
 
@@ -487,6 +487,24 @@ qqPlot(houses$price, dist="lnorm", pch=20, main="QQ-Plot Log-Normal Fit",
 ```
 
 As it's possible to see on the qq-plot for the Gaussian model on the left, the fact that the last points detach form the line suggests that there is not great agreement between the measured data and the theoretical Gaussian distribution and also indicates that the distribution of the data is skewed to the right as we've already deduced from the previous histogram.
+
+
+To complete our analysis, we have decided to perform the Kolmogorov-Smirnov test, a non parametric test used for goodness-of-fit. In particular, we will run two different one-sample KS test, to compare the data from the dataset with a reference probability distribution, in this case the Gaussian and LogNormal distributions.
+
+```{r, warning=FALSE}
+ks.test(houses$price, "pnorm", mean = 233, sd = 151 )
+```
+
+Considering a significance level of $5\%$, the p-value of this test is much lower than 0.05, so the data does not provide enough evidence to accept $H_0$, so there is not evidence that the prices are distributed as a Gaussian, with $\mu = 233$ and $\sigma = 151$.
+
+
+```{r, warning=FALSE}
+ks.test(houses$price, "plnorm", meanlog = 5.2913, sdlog = 0.5591 )
+```
+
+
+Considering a significance level of $5\%$, the p-value of this test is much greater than 0.05, so the data does provide enough evidence to accept $H_0$, so there is evidence that the prices are distributed as a LogNormal distribution, with $\mu_{log} = 5.2913$ and $\sigma_{log} = 0.5591$.
+
 
 
 ### Ex 4.48
