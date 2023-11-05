@@ -650,7 +650,7 @@ We can conclude that the p-value obtained is greater than 0.1, which corresponds
 **Solution**
 
 a)    To compare the mean sales for the two menus with a significance test, given the assumption made by the problem we can use the either the standard t-test, with the pooled standard deviation. First of all we estimate a pooled value $s$ for the standard deviation: 
-$$ s= \sqrt{\frac{(n_1-1)s_1^2+(n2_1)s_2^2}{n_1+n_2-2}}$$
+$$ s= \sqrt{\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}}$$
 This is possible since $s_1$ and $s_2$ do not result greatly different. So in this case the estimated standard error is:
 $$ se = s\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}$$
 The test consider as null hypothesis $H_0\,:\,\mu_1=\mu_2$, so $\mu_1-\mu_2=0$, otherwise $H_\alpha\,:\,\mu_1\neq\mu_2$. Hence the test statistic is: 
