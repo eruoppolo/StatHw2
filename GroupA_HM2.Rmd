@@ -20,7 +20,60 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **Solution**
 
-Add comments to the solution.
+```{r, include=FALSE}
+library(tidyverse)
+```
+
+In this exercise, we have decided to simulate random samples from a Normal distribution, with $\mu = 2$ and $\sigma^2 = 1$. We will run eight different experiments, with respectively, 20 samples, 30, 100, 500, $10^3$, $10^4$,$10^5$ and $10^6$.
+
+```{r}
+n1 <- 20
+n2 <- 30
+n3 <- 100
+n4 <- 500
+n5 <- 1000
+n6 <- 10000
+n7 <- 100000
+n8 <- 1000000
+
+samples_n1 <- rnorm(n1, 2, 1)
+samples_n2 <- rnorm(n2, 2, 1)
+samples_n3 <- rnorm(n3, 2, 1)
+samples_n4 <- rnorm(n4, 2, 1)
+samples_n5 <- rnorm(n5, 2, 1)
+samples_n6 <- rnorm(n6, 2, 1)
+samples_n7 <- rnorm(n7, 2, 1)
+samples_n8 <- rnorm(n8, 2, 1)
+```
+
+
+
+```{r}
+ggplot()+
+  geom_density(aes(x = samples_n1, colour = "n = 20") )+
+  geom_density(aes(x = samples_n2, colour = "n = 30") )+
+  labs(title = "Small sample size, n = 20 & n = 30")+
+  xlab("X")+
+  ylab("density")
+
+ggplot()+
+  geom_density(aes(x = samples_n3, colour = "n = 100") )+
+  geom_density(aes(x = samples_n4, colour = "n = 500") )+
+  labs(title = "Medium sample size, n = 100 & n = 500")+
+  xlab("X")+
+  ylab("density")
+
+ggplot()+
+  geom_density(aes(x = samples_n5, colour = "n = 10^3") )+
+  geom_density(aes(x = samples_n6, colour = "n = 10^4") )+
+  geom_density(aes(x = samples_n7, colour = "n = 10^5") )+
+  geom_density(aes(x = samples_n8, colour = "n = 10^6") )+
+  labs(title = "Very large sample size, n >= 1000")+
+  xlab("X")+
+  ylab("density")
+```
+
+From the three density plots above it is possible to notice the effect of sample size. In particular, comparing the "Small sample size, n = 20 & n = 30" with "Medium sample size, n = 100 & n = 500" plot it is possible to notice that increasing $n$, the probability distributions' plots of normal random samples takes on the characteristics of a Gaussian distribution. When $n$ is set to be equal or greater than $1000$, then the probability distributions' plots of normal random samples are perfectly normal.
 
 ### Ex 3.18
 
@@ -67,7 +120,31 @@ Being the number of voters an integer number, it is possible to approximate the 
 
 **Solution**
 
-Add comments to the solution.
+```{r pressure, echo=FALSE}
+# Define a range of p values, where pv are a range from 0.01 to 0.99.
+p_values <- seq(0.01, 0.99, by = 0.01)
+
+# Calculate the likelihood for each p value
+likelihood <- (1 - p_values)^2 * p_values
+
+# Plot the likelihood function
+plot(p_values, likelihood, type = "l", col = "red", xlab = "pv", ylab = "Likelihood",
+     main = "Likelihood Function")
+
+#results:
+##we have y=3, the prob is given by: P(Y=3)=(1−p)^2⋅p
+#we need to take pv as the estimated parameter
+##the likelihood function is the function l(θ) = f(y;θ) of θ
+```
+
+In this exercise the first success has been observed after three samples. So, we are in a condition like: $P(Y=k) = (1-p)^{k-1}(p) \rightarrow P(Y=3) = (1-p)^2(p)$, where $p \in [0;1]$ is the success parameter.
+
+The likelihood function of a Geometric distribution, represented in the above plot, has the following form:
+
+$$L(p | \vec{y}) = \prod_{i = 1}^{n} f_i(y) = \prod_{i = 1}^{n} (1-p)^{y_i-1}p = ((1-p)^{\sum_{i = 1}^{n} y_i - n})(p^n)$$
+
+The $MLE(p) = \frac{1}{\overline{y}}$.
+
 
 ### Ex 4.4
 
@@ -75,7 +152,51 @@ Add comments to the solution.
 
 **Solution**
 
-Add comments to the solution.
+```{r}
+Student <- read.table("https://stat4ds.rwth-aachen.de/data/Students.dat", header=TRUE)
+Student$life <- as.factor(Student$life)
+```
+
+
+Since, it is asked to estimate the proportion of students who believe in life after death, we assume students undecided as students who do not believe.
+
+```{r}
+levels(Student$life) <- c(1, 0, 0)
+Student$life <- as.numeric(Student$life)
+```
+
+
+```{r}
+length(Student$life)
+```
+
+The number of observations in the dataset is 60.
+
+ML theory shows that the log-likelihood function of a binomial distribution is maximized at $\hat\pi = \frac{\sum{y_i}}{n}$, so, in this case, it is the proportion of students who belives in life after death.
+
+```{r}
+mle_pi <- sum(Student$life == 1)/length(Student$life)
+mle_pi
+```
+
+
+The MLE estimate is 0.516.
+
+The Wald confidence interval, at 95% of significance level is: $\hat\pi \pm z_{\frac{\alpha=0.05}{2}}\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}}$.
+
+```{r}
+quant_z <- qnorm(0.975,mean=0,sd=1)
+lower_b <- mle_pi - quant_z*sqrt((mle_pi*(1-mle_pi))/length(Student$life))
+upper_b <- mle_pi + quant_z*sqrt((mle_pi*(1-mle_pi))/length(Student$life))
+lower_b
+```
+
+
+```{r}
+upper_b
+```
+
+The Wald confidence interval is $\hat\pi \in [0.3902 ; 0.6431]$.
 
 ### Ex 4.38
 
@@ -108,10 +229,10 @@ Thus we find the ML estimator for $\pi$: $$ \hat\pi=\frac{n}{\sum_i^ny_i}$$
 
 *Refer to the previous two exercises. Consider the selling prices (in thousands of dollars) in the* ``Houses`` *data file mentioned in Exercise 4.31.*
 
--   *Fit the normal distribution to the data by finding the ML estimates of* $\mu$ *and* $\sigma$ *for that distribution.*
--   *Fit the log-normal distribution to the data by finding the ML estimates of its parameters.*
--   *Find and compare the ML estimates of the mean and standard deviation of selling price for the two distributions.*
--   *Superimpose the fitted normal and log-normal distributions on a histogram of the data. Which distribution seems to be more appropriate for summarizing the selling prices?*
+(a)   *Fit the normal distribution to the data by finding the ML estimates of* $\mu$ *and* $\sigma$ *for that distribution.*\
+(b)   *Fit the log-normal distribution to the data by finding the ML estimates of its parameters.*\
+(c)   *Find and compare the ML estimates of the mean and standard deviation of selling price for the two distributions.*\
+(d)   *Superimpose the fitted normal and log-normal distributions on a histogram of the data. Which distribution seems to be more appropriate for summarizing the selling prices?*\
 
 **Solution**
 
@@ -138,8 +259,9 @@ $$
 $$
 ```{r, include=FALSE}
 # Import and read the dataset
-houses <- read.csv("~/units/Statistical Methods/StatHw2/houses.dat", sep="",stringsAsFactors=TRUE)
+houses <- read.table("https://stat4ds.rwth-aachen.de/data/Houses.dat", header=TRUE)
 library(fields)
+library(car)
 ```
 
 
@@ -334,29 +456,35 @@ $$
 \hat\sigma_{gauss} \approx 151\\
 \end{cases}
 $$
-In the second scenario, since the distribution used to fit the data is the Log-Normal distribution, the estimated parameters give a mean and a standard deviation for the data in a logarithmic scale. Therefore, in order to compare the results with the ones from the first fit we should apply the exponential function as follows:
+In the second scenario, since the distribution used to fit the data is the Log-Normal distribution, the estimated parameters $\mu$ and $\sigma$ give a mean and a standard deviation for the data in a logarithmic scale. Therefore, in order to compare the results with the ones from the first fit we should apply the formulas for the expected value ($\mu_{log}$) and the standard deviation ($\sigma_{log}$) of the Log-Normal distribution:
+$$
+\mu_{log}=exp\left(\mu+\frac{\sigma^2}{2}\right)
+\quad{\; , \;}\quad
+\sigma_{log}=\sqrt{\left(e^{\sigma^2}-1\right)\cdot exp\left(2\mu+\sigma^2\right)}
+$$
+We can get these value in R with the following code.
 ```{r}
-lmean <- exp(lmu_MLE)
-lsigma <- exp(sqrt(lsigma2_MLE))
+lmean <- exp(lmu_MLE+0.5*lsigma2_MLE)
+lsigma <- sqrt((exp(lsigma2_MLE)-1)*exp(2*lmu_MLE+lsigma2_MLE))
 cat(" Mean exponential:", lmean,"\n","Standard deviation exponential:", lsigma,"\n")
 ```
 Which means that, approximately:
 $$
 \begin{cases}
-exp(\hat\mu_{log}) \approx 198.6\\
-exp(\hat\sigma_{log}) \approx 1.7\\
+\hat\mu_{log} \approx 232\\
+\hat\sigma_{log} \approx 140\\
 \end{cases}
 $$
-Having obtained comparable values, it's now possible to see that the mean for the selling price does not seems to change significantly from one fit to the other but there is a notable difference for what regards the standard deviation. The high value obtained with the Gaussian fit suggests that the selling price is subject to high variability while the opposite can be said for the Log-Normal fit due to the relatively small value estimated for the standard deviation.
+Having obtained comparable values, it's now possible to see that the mean and the standard deviation estimated for the selling prices do not seem to change significantly from one fit to the other. By only looking at the estimated mean and standard deviation the two models seem to describe the same phenomenon.
 
-(d) By superimposing the two distribution to the histogram of the prices it is possible to better visualize what was said for the previous point.
+(d) However, by superimposing the two distribution to the histogram of the prices it is possible to better visualize the difference between the two models.
 ```{r}
 # Superimpose Gaussian plot
 {hist(houses$price, prob=TRUE, nclass = 15, main = "Histogram of houses prices", 
       xlab="Price (k$)", ylab="Density")
   
 curve(dnorm(x, mean = mu_MLE, sd = sqrt(sigma2_MLE)), lwd = 2, col="red", add = TRUE)
-segments(mu_MLE, 0, mu_MLE, dnorm(mu_MLE, mu_MLE, sqrt(sigma2_MLE)), col="red", lwd = 2)
+segments(mu_MLE, 0, mu_MLE, dnorm(mu_MLE, mu_MLE, sqrt(sigma2_MLE)), col="red", lwd = 3)
 
 curve(dlnorm(x, mean = lmu_MLE, sd = sqrt(lsigma2_MLE)), lwd = 2, col="blue", add = TRUE)
 dlmean <- dlnorm(lmean, lmu_MLE, sqrt(lsigma2_MLE))
@@ -367,11 +495,9 @@ legend(x = "topright", legend=c( "Gaussian Fit", "Log-Normal Fit" ),
 }
 ```
 
-Among the two distribution, the Log-Normal one seems to be the better choice for fitting the data both due to their high skewness and also because the histogram shows them to be more concentrated around the mean value estimated with the second fit, contradicting this way the high variability suggested by the Gaussian fit.
+Even if the two distributions produced similar means and standard deviations, among them the Log-Normal one seems to be the better choice for fitting the data due to their high skewness.
 This is also supported by the qq-plots obtainable for the two fits.
 ```{r}
-library(car)
-
 {par(mfrow = c(1, 2))
 qqPlot(houses$price, dist="norm", pch=20, main="QQ-Plot Gaussian Fit", 
        xlab="Gaussian quantiles", ylab="Sample prices quantiles", 
@@ -387,13 +513,77 @@ qqPlot(houses$price, dist="lnorm", pch=20, main="QQ-Plot Log-Normal Fit",
 As it's possible to see on the qq-plot for the Gaussian model on the left, the fact that the last points detach form the line suggests that there is not great agreement between the measured data and the theoretical Gaussian distribution and also indicates that the distribution of the data is skewed to the right as we've already deduced from the previous histogram.
 
 
+To complete our analysis, we have decided to perform the Kolmogorov-Smirnov test, a non parametric test used for goodness-of-fit. In particular, we will run two different one-sample KS test, to compare the data from the dataset with a reference probability distribution, in this case the Gaussian and LogNormal distributions.
+
+```{r, warning=FALSE}
+ks.test(houses$price, "pnorm", mean = 233, sd = 151 )
+```
+
+Considering a significance level of $5\%$, the p-value of this test is much lower than 0.05, so the data does not provide enough evidence to accept $H_0$, so there is not evidence that the prices are distributed as a Gaussian, with $\mu = 233$ and $\sigma = 151$.
+
+
+```{r, warning=FALSE}
+ks.test(houses$price, "plnorm", meanlog = 5.2913, sdlog = 0.5591 )
+```
+
+
+Considering a significance level of $5\%$, the p-value of this test is much greater than 0.05, so the data does provide enough evidence to accept $H_0$, so there is evidence that the prices are distributed as a LogNormal distribution, with $\mu_{log} = 5.2913$ and $\sigma_{log} = 0.5591$.
+
+
+
 ### Ex 4.48
 
 *For a simple random sample of * ${n}$ *subjects, explain why it is about 95% likely that the sample proportion has error no more than* $1/\sqrt{n}$ *in estimating the population proportion. (Hint: To show this “* $1/\sqrt{n}$ *rule”, find two standard errors when * $\pi=0.50$ *, and explain how this compares to two standard errors at other values of * $\pi$ *.) Using this result, show that * $n=1/M^2$ *is a safe sample size for estimating a proportion to within * $M$ *with 95% confidence.*
 
 **Solution**
 
-Add comments to the solution.
+Let's define the function to compute the standard error for the estimate of proportion:
+
+```{r}
+se_prop <- function(prop, len_n)  {
+  val <- (((prop)*(1-prop))/len_n)**0.5
+  return(val)
+}
+```
+
+
+Let's understand what happens in the following example:
+
+```{r}
+quant_zz <- qnorm(0.975,mean=0,sd=1)
+quant_zz*se_prop(0.5,20)
+1/(20**0.5)
+```
+
+Here, $\sqrt{1/20}$ is approximately the same value of $z_{1-\frac{\alpha}{2}}\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}}$.
+
+Looking another example:
+
+```{r}
+quant_zz*se_prop(0.5,60)
+1/(60**0.5)
+```
+
+
+This happens because $z_{0.975} = 1.96$, which is approximately 2.
+
+If $\pi = 0.5$, then $\sqrt{\frac{\pi(1-\pi)}{n}} = \frac{\pi}{\sqrt{n}}$, so $z_{0.975}\frac{\pi}{\sqrt{n}} = 2\frac{0.5}{\sqrt{n}} = \frac{1}{\sqrt{n}}$. This $\frac{1}{\sqrt{n}}$ is called margin of errors. In particular, this is the margin of errors at 95% of confidence.
+
+Similarly, it is approximately the same if $\pi$ is not 0.5, because $\sqrt{\pi(1-\pi)}$ is approximately 0.5.
+
+```{r}
+quant_zz*se_prop(0.7,60)
+1/(60**0.5)
+```
+
+
+When designing an experiment, in this case the estimation of class's proportion in a population, it is possible that the researchers defined the significance level a priori. Also, it can be defined the margin of error a priori. In this way it is possible to define in advance the necessary sample size, $n$. When doing this, if there is no prior knowledge about teh proportion to estimate, is is possible to set $\hat\pi = 0.5$, since it is the most non informative choice.
+
+Let's $M = z_{1-\frac{\alpha}{2}}\sqrt{\frac{\hat\pi(1-\hat\pi)}{n}}$. From this equation it is possible to define the sample size as $n = \frac{{z_{1-\frac{\alpha}{2}}}^2}{M^2}\hat\pi(1-\hat\pi)$.
+
+Then, as shown before, $z_{0.975} = 2$ approximately, so $z_{0.975}^2 = 4$. The $\hat\pi(1-\hat\pi)$ is $0.25$. 
+
+So, $n = \frac{1}{M^2}$ approximately.
 
 ## FSDS - Chapter 5
 
@@ -403,7 +593,55 @@ Add comments to the solution.
 
 **Solution**
 
-Add comments to the solution.
+Let $u=1200$ the number of Floridians which answered the poll, $n_1=624$ the number of people who voted for raising the taxes, which corresponds to the $\pi = 52\%$ and $n_2=576$ those who voted for reducing the services, $1-\pi = 48\%$.
+
+The two hypothesis are: 
+
+$$ \begin{cases}H_0 : \pi=0.50 \\
+H_\alpha:\pi\neq 0.50
+\end{cases} $$
+
+Where $H_0$ is the null hypothesis, or status quo, so the hypothesis we'd like to verify, and $H_\alpha$ is the alternative hypothesis.
+
+Since $n$ is a large number we can use the normal distribution, and we use the two tailed test because we don't know which direction the distribution takes.
+
+```{r}
+n <- 1200
+n1 <- 624
+n2 <- n - n1
+p <- n1/n
+p2 <- 1-p
+p0 <- 0.5
+#computing std error
+se0 <- sqrt((p0*(1-p0))/n)
+#computing test statistic
+Z <- (p-p0)/se0
+
+Z
+
+pv <- 2*pnorm(Z, lower.tail =  F)
+
+pv
+
+prop.test(n1, n, p=0.50, alt = "two.sided", conf.level = 0.95, correct = F)
+```
+
+
+We have also done the hypothesis testing using formulas and probability tables rather than using R libraries. So:
+$$ z=\frac{\hat{p}-r_0}{\sqrt{\frac{r_0(1-r_0)}{n}}}$$
+
+Where $\hat{p}$ is the proportion: $624/1200=0.52$. Hence we can compute this quantity:
+$$ z=\frac{0.52-0.50}{\sqrt{\frac{0.50(1-0.50)}{1200}}}=1.4184 $$
+
+From the normal quantile tables we can get the p-value:
+$$ p = F(z<-1,4184)+F(z>-1,4184)=0.0778+0.0778=0.1556$$
+
+
+P-value for testing $H_0: \pi = 0.50$ against $H_{\alpha}: \pi \neq 0.50$ is the two-tail probability of a test statistic at least as extreme as the observed $z = 1.4184$, which is $2(0.0778) = 0.1556$.
+
+The difference in the two p-values is due to numerical approximation done by R.
+
+We can conclude that the p-value obtained is greater than 0.1, which corresponds to a significance level of $10 \%$, which means that there are no marginal evidence to reject the $H_0$.
 
 ### Ex 5.12
 
@@ -412,7 +650,7 @@ Add comments to the solution.
 **Solution**
 
 a)    To compare the mean sales for the two menus with a significance test, given the assumption made by the problem we can use the either the standard t-test, with the pooled standard deviation. First of all we estimate a pooled value $s$ for the standard deviation: 
-$$ s= \sqrt{\frac{(n_1-1)s_1^2+(n2_1)s_2^2}{n_1+n_2-2}}$$
+$$ s= \sqrt{\frac{(n_1-1)s_1^2+(n_2-1)s_2^2}{n_1+n_2-2}}$$
 This is possible since $s_1$ and $s_2$ do not result greatly different. So in this case the estimated standard error is:
 $$ se = s\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}$$
 The test consider as null hypothesis $H_0\,:\,\mu_1=\mu_2$, so $\mu_1-\mu_2=0$, otherwise $H_\alpha\,:\,\mu_1\neq\mu_2$. Hence the test statistic is: 
@@ -465,7 +703,7 @@ dif
 The result is: $$ (\bar{y}_1-\bar{y}_2)\pm t_{0.025,91}(se) = -3.61\pm3.1\text{  or }(-6.71,-0.51)$$
 The interval not including 0 can be interpreted as sign that the two means are not equal. Also the interval covering only negative values may mean that $\mu_2>\mu_1$.
 
-So, by these two different analysis we can state that the hypothesis test only states that the hypothesis of having $\mu_1=\mu_2$ should be rejected because of the low $p-$value while the confidence interval analysis adds to the statement of incompatibility that the mean sale of menu b is higher than the one of menu a.
+So, by these two different analysis we can find that the hypothesis test only suggests that the hypothesis of having $\mu_1=\mu_2$ should be rejected because of the low $p-$value, while the confidence interval analysis adds to the statement of incompatibility that the mean sale of menu b is higher than the one of menu a.
 
 ### Ex 5.68
 
@@ -531,4 +769,4 @@ $$
 \left\{\; \pi \in [0,1] \; : \; \hat{\pi} - \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \leq \;\; \pi \;\; \leq \hat{\pi} + \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}} \;\right\}
 $$
 and it's immediately possible to notice that the width of the interval, given by $2 \cdot \sqrt{\frac{\hat\pi(1-\hat\pi)}{n}\;\chi^2_{1;1-\alpha}}$, goes to zero for any given confidence level as the sample proportion $\hat\pi$ approaches either $0$ or $1$ (boundary values).
-This behavior results problematic when conducting a hypothesis test since it most likely leads to the rejection of the null hypothesis in favor of the alternative one independently of the value assumed by the test statistic $W_e(\theta)$.
+This behavior results problematic when conducting a hypothesis test since it most likely leads to the rejection of the null hypothesis (in favor of the alternative one) independently of both the value assumed by the test statistic $W_e(\theta)$ and the chosen significance level to conduct the test.
